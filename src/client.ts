@@ -29,13 +29,13 @@ export function createClient(options: CreateClientOptions): DataGoKrClient {
   const fetchFn = options.fetch ?? fetch;
 
   function buildUrl(operation: string, params: Params): string {
-    const op = operation.replace(/^\/+/, "");
+    const op = operation.replace(/^\/+|\/+$/g, "");
     const qs = new URLSearchParams();
-    qs.set("serviceKey", serviceKey);
     for (const [k, v] of Object.entries({ ...defaultParams, ...params })) {
       if (v === undefined) continue;
       qs.set(k, String(v));
     }
+    qs.set("serviceKey", serviceKey);
     return `${baseURL}${path}/${op}?${qs.toString()}`;
   }
 
@@ -47,7 +47,7 @@ export function createClient(options: CreateClientOptions): DataGoKrClient {
       const norm = normalizeResultCode(code, am?.[1]);
       if (norm.error) throw norm.error;
       if (norm.noData) {
-        const pageNo = params.pageNo !== undefined ? Number(params.pageNo) : 1;
+        const pageNo = Number(params.pageNo ?? defaultParams.pageNo ?? 1);
         return { totalCount: 0, pageNo, items: [] };
       }
       throw new DataGoKrError(code, "응답을 처리할 수 없습니다");
