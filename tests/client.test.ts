@@ -63,4 +63,28 @@ describe("createClient.call", () => {
     const client = createClient({ ...base, serviceKey: "a%2Bb", fetch: mockFetch("{}") });
     expect(client.serviceKeyLooksPreEncoded).toBe(true);
   });
+
+  it("call-level params의 serviceKey는 인스턴스 serviceKey를 덮어쓸 수 없다", async () => {
+    const fetchFn = mockFetch(fx("search-cnstwk.json"));
+    const client = createClient({ ...base, serviceKey: "REAL", fetch: fetchFn });
+    await client.call("op", { serviceKey: "EVIL" });
+    const url = new URL(fetchFn.mock.calls[0]![0] as string);
+    expect(url.searchParams.get("serviceKey")).toBe("REAL");
+  });
+
+  it("operation 앞뒤 슬래시를 모두 제거한다", async () => {
+    const fetchFn = mockFetch(fx("search-cnstwk.json"));
+    const client = createClient({ ...base, fetch: fetchFn });
+    await client.call("/op/", {});
+    const url = new URL(fetchFn.mock.calls[0]![0] as string);
+    expect(url.pathname).toBe("/1230000/ad/BidPublicInfoService/op");
+  });
+
+  it("비-JSON noData 응답의 pageNo는 병합된 인스턴스 기본값을 사용한다", async () => {
+    const xml =
+      "<OpenAPI_ServiceResponse><cmmMsgHeader><returnReasonCode>03</returnReasonCode></cmmMsgHeader></OpenAPI_ServiceResponse>";
+    const client = createClient({ ...base, params: { pageNo: 7 }, fetch: mockFetch(xml) });
+    const r = await client.call("op", {});
+    expect(r.pageNo).toBe(7);
+  });
 });
