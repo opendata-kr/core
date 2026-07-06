@@ -3,7 +3,7 @@
 data.go.kr OpenAPI 표준 전송계층. `<service>-mcp` 도구들이 공유한다.
 
 [![npm version](https://img.shields.io/npm/v/@opendata-kr/core)](https://www.npmjs.com/package/@opendata-kr/core)
-[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![license](https://img.shields.io/npm/l/@opendata-kr/core)](./LICENSE)
 [![types](https://img.shields.io/badge/types-included-blue)](./dist/index.d.ts)
 
 data.go.kr의 수많은 OpenAPI는 인증·응답 봉투·에러코드가 제각각이다. `core`는 이 전송계층을 한 곳으로 표준화한다. `serviceKey` 주입, 기본 파라미터 병합, 타임아웃, 응답 봉투·`items` 정규화, 결과코드 정규화를 담당한다.
