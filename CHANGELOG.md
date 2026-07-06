@@ -2,6 +2,13 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.1.3](https://github.com/opendata-kr/core/compare/v0.1.2...v0.1.3) (2026-07-06)
+
+
+### Automation
+
+* packageManager 필드 추가로 pnpm/action-setup 발행 실패 해결 ([ccc461d](https://github.com/opendata-kr/core/commit/ccc461de709c4c552bccc6106fa33567a47e1bde))
+
 ## [0.1.2](https://github.com/opendata-kr/core/compare/v0.1.1...v0.1.2) (2026-07-06)
 
 
