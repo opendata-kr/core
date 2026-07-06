@@ -27,7 +27,8 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:package": "node scripts/verify-npm-package.mjs"
   },
   "devDependencies": {
     "@types/node": "^22",
