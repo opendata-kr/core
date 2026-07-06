@@ -1,0 +1,27 @@
+name: release-please
+
+# main에 conventional commits가 쌓이면 release-please가 "release PR"을 열어
+# 버전·CHANGELOG를 만들고, 머지 시 package.json 버전을 올리고 vX.Y.Z 태그를 만든다.
+# 태그는 GitHub App 토큰으로 생성되므로 release.yml(태그 트리거 발행)을 트리거한다.
+on:
+  push:
+    branches: [main]
+
+permissions: read-all
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      # GitHub App(RELEASE_PLEASE_APP_ID/PRIVATE_KEY)으로 단명 토큰 발급
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+      - uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

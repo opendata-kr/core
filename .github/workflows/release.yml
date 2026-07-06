@@ -1,7 +1,7 @@
 name: release
 
-# 태그(vX.Y.Z) push로만 발행한다. 버전 원천은 package.json이고
-# `pnpm version <patch|minor|major>`가 bump + 커밋 + 태그를 만든다.
+# 태그(vX.Y.Z) push로만 발행한다. 버전과 태그는 release-please가 관리한다(release-please.yml).
+# release-please가 App 토큰으로 만든 태그가 이 워크플로를 트리거한다.
 on:
   push:
     tags: ['v*']
@@ -26,4 +26,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm verify:package   # tarball에 dist 포함 확인 (dry-run)
       - run: pnpm publish --no-git-checks   # NPM_TOKEN 없음, OIDC로 인증
