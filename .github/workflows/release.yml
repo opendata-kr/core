@@ -20,7 +20,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           registry-url: https://registry.npmjs.org
-          cache: false   # 릴리스 빌드에는 캐시를 쓰지 않는다(npm 공식 권고)
+          package-manager-cache: false   # 릴리스 빌드에는 캐시를 쓰지 않는다(cache:false는 무효값)
       - name: 태그와 package.json 버전 정합 확인
         run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
       - run: pnpm install --frozen-lockfile
