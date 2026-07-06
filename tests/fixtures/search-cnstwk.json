@@ -1,0 +1,36 @@
+{
+  "response": {
+    "header": { "resultCode": "00", "resultMsg": "정상" },
+    "body": {
+      "totalCount": 2,
+      "numOfRows": 10,
+      "pageNo": 1,
+      "items": [
+        {
+          "bidNtceNo": "R25BK00932003",
+          "bidNtceOrd": "000",
+          "bidNtceNm": "문성고등학교 비탈면공사 수의계약 안내공고",
+          "ntceInsttNm": "문성고등학교",
+          "dminsttNm": "문성고등학교",
+          "bidNtceDt": "2025-07-01 06:23:47",
+          "bidClseDt": "2025-07-10 10:00:00",
+          "opengDt": "2025-07-10 11:00:00",
+          "presmptPrce": "180645355",
+          "bidNtceDtlUrl": "https://www.g2b.go.kr/example1"
+        },
+        {
+          "bidNtceNo": "R25BK00932010",
+          "bidNtceOrd": "000",
+          "bidNtceNm": "○○청사 리모델링 공사",
+          "ntceInsttNm": "○○청",
+          "dminsttNm": "○○청",
+          "bidNtceDt": "2025-07-02 09:00:00",
+          "bidClseDt": "2025-07-12 10:00:00",
+          "opengDt": "2025-07-12 11:00:00",
+          "presmptPrce": "540000000",
+          "bidNtceDtlUrl": "https://www.g2b.go.kr/example2"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "response": {
+    "header": { "resultCode": "03", "resultMsg": "데이터 없음" },
+    "body": { "totalCount": 0, "numOfRows": 10, "pageNo": 1, "items": "" }
+  }
+}
