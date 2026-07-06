@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/opendata-kr/core#readme",
   "license": "MIT",
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
