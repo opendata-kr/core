@@ -1,15 +1,27 @@
 {
   "name": "@opendata-kr/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "data.go.kr OpenAPI 표준 전송계층",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "git+https://github.com/opendata-kr/core.git" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opendata-kr/core.git"
+  },
   "homepage": "https://github.com/opendata-kr/core#readme",
   "license": "MIT",
   "scripts": {
