@@ -16,6 +16,7 @@ function fmt(dt: Date): string {
 // YYYYMMDD 구간을 maxDays 단위 창으로 분할한다. 각 창은 시작 0000, 종료 2359 시각을 붙인다
 // (data.go.kr inqryBgnDt/inqryEndDt 규약).
 export function splitDateWindows(start: string, end: string, maxDays: number): DateWindow[] {
+  if (maxDays <= 0) throw new RangeError("maxDays must be >= 1");
   const windows: DateWindow[] = [];
   let cur = toDate(start);
   const last = toDate(end);

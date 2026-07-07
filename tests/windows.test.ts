@@ -11,4 +11,7 @@ describe("splitDateWindows", () => {
     expect(w[0]).toEqual({ bgn: "202606010000", end: "202606072359" });
     expect(w[2]!.end).toBe("202606202359");
   });
+  it("maxDays가 0 이하면 RangeError", () => {
+    expect(() => splitDateWindows("20260601", "20260607", 0)).toThrow(RangeError);
+  });
 });
