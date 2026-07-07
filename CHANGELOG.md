@@ -2,6 +2,25 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.2.0](https://github.com/opendata-kr/core/compare/v0.1.3...v0.2.0) (2026-07-07)
+
+
+### Features
+
+* **client:** retryable 에러 1회 재시도·httpStatus·rawBody 구조화 ([1f07efa](https://github.com/opendata-kr/core/commit/1f07efa4281821d19920e3a2e28047e258633ee8))
+* **concurrency:** 인라인 세마포어 mapWithConcurrency 추가 ([e8829cf](https://github.com/opendata-kr/core/commit/e8829cf7d709ac54881e9fcaae93b33b324e6ce8))
+* **config:** DATA_GO_KR_TIMEOUT_MS env·기본 30초 타임아웃 해석 ([318ac96](https://github.com/opendata-kr/core/commit/318ac96f44c5358ed0e19ff87b4cfe1e0d04619e))
+* **errors:** DataGoKrError에 kind·retryable·httpStatus·rawBody 추가 ([8fc4f78](https://github.com/opendata-kr/core/commit/8fc4f78e14a8fc1016fae9904f384e1f8ae874b8))
+* **fetchWindows:** 윈도우 동시성·부분실패(failedWindows) 헬퍼 추가 ([cc45680](https://github.com/opendata-kr/core/commit/cc45680c53266899e9fc0d1953800f9f78f090b6))
+* **index:** 신규 페치 프리미티브·fetchWindows export ([0e3ded3](https://github.com/opendata-kr/core/commit/0e3ded3dc9d0eea17bb8f0cc7e15b853afd5560d))
+* **paginate:** fetchAllPages를 core로 승격 ([2d7814c](https://github.com/opendata-kr/core/commit/2d7814c705a517345abf11362e6c9f954bf42a15))
+* **windows:** splitDateWindows를 core로 승격 ([b9ec975](https://github.com/opendata-kr/core/commit/b9ec975b598f144e2df7bf305954d9e40f3339f8))
+
+
+### Bug Fixes
+
+* **windows:** splitDateWindows maxDays&lt;=0 무한루프 방지 가드 ([74bfdaf](https://github.com/opendata-kr/core/commit/74bfdafda159da2e6995fe9c81f0dad9735a7b57))
+
 ## [0.1.3](https://github.com/opendata-kr/core/compare/v0.1.2...v0.1.3) (2026-07-06)
 
 
