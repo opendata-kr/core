@@ -88,3 +88,43 @@ describe("createClient.call", () => {
     expect(r.pageNo).toBe(7);
   });
 });
+
+const okJson = (items: unknown[]) =>
+  new Response(JSON.stringify({ response: { header: { resultCode: "00" }, body: { totalCount: items.length, pageNo: 1, items } } }), { status: 200 });
+
+describe("client 재시도", () => {
+  it("503은 1회 재시도 후 성공", async () => {
+    const calls: number[] = [];
+    let n = 0;
+    const fetchFn = (async () => { n++; calls.push(n); return n === 1 ? new Response("x", { status: 503 }) : okJson([{ a: "1" }]); }) as unknown as typeof fetch;
+    const client = createClient({ path: "/p/S", fetch: fetchFn, serviceKey: "k", retry: { sleep: async () => {} } });
+    const r = await client.call("op");
+    expect(r.items).toHaveLength(1);
+    expect(n).toBe(2);
+  });
+
+  it("400은 재시도 없이 즉시 실패(httpStatus 보존)", async () => {
+    let n = 0;
+    const fetchFn = (async () => { n++; return new Response("bad", { status: 400 }); }) as unknown as typeof fetch;
+    const client = createClient({ path: "/p/S", fetch: fetchFn, serviceKey: "k", retry: { sleep: async () => {} } });
+    await expect(client.call("op")).rejects.toMatchObject({ httpStatus: 400 });
+    expect(n).toBe(1);
+  });
+
+  it("타임아웃 후 성공하면 재시도로 복구", async () => {
+    let n = 0;
+    const fetchFn = (async () => { n++; if (n === 1) { const e: any = new Error("aborted"); e.name = "AbortError"; throw e; } return okJson([{ a: "1" }]); }) as unknown as typeof fetch;
+    const client = createClient({ path: "/p/S", fetch: fetchFn, serviceKey: "k", retry: { sleep: async () => {} } });
+    const r = await client.call("op");
+    expect(r.items).toHaveLength(1);
+    expect(n).toBe(2);
+  });
+
+  it("retries:0이면 재시도 안 함", async () => {
+    let n = 0;
+    const fetchFn = (async () => { n++; return new Response("x", { status: 503 }); }) as unknown as typeof fetch;
+    const client = createClient({ path: "/p/S", fetch: fetchFn, serviceKey: "k", retry: { retries: 0, sleep: async () => {} } });
+    await expect(client.call("op")).rejects.toBeInstanceOf(DataGoKrError);
+    expect(n).toBe(1);
+  });
+});
