@@ -55,7 +55,7 @@ describe("createClient.call", () => {
   });
 
   it("HTTP 오류는 throw", async () => {
-    const client = createClient({ ...base, fetch: mockFetch("", false, 500) });
+    const client = createClient({ ...base, fetch: mockFetch("", false, 500), retry: { sleep: async () => {} } });
     await expect(client.call("op", {})).rejects.toThrow(/HTTP 500/);
   });
 
