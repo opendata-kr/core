@@ -14,3 +14,4 @@ export { errMessage } from "./errMessage.js";
 export { fanOut } from "./fanOut.js";
 export type { Outcome, FanOutResult } from "./fanOut.js";
 export { dateRangeParams, pagingParams } from "./params.js";
+export { withKeyHint } from "./keyHint.js";
