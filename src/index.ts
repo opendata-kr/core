@@ -10,3 +10,4 @@ export { fetchAllPages } from "./paginate.js";
 export type { PageCaller, PagedResult } from "./paginate.js";
 export { fetchWindows } from "./fetchWindows.js";
 export type { WindowedResult, FailedWindow } from "./fetchWindows.js";
+export { errMessage } from "./errMessage.js";
