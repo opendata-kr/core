@@ -13,17 +13,16 @@ function fmt(dt: Date): string {
   return `${y}${m}${d}`;
 }
 
-// YYYYMMDD 구간을 maxDays 단위 창으로 분할한다. 각 창은 시작 0000, 종료 2359 시각을 붙인다
-// (data.go.kr inqryBgnDt/inqryEndDt 규약).
-export function splitDateWindows(start: string, end: string, maxDays: number): DateWindow[] {
-  if (maxDays <= 0) throw new RangeError("maxDays must be >= 1");
+// YYYYMMDD 구간을 캘린더 월 경계로 분할한다. 각 창은 시작 0000, 종료 2359 시각을 붙이고
+// 한 달 안에 머문다(data.go.kr 조회기간 한계 "종료일 ≤ 시작일 + 1 캘린더 개월" 충족).
+// 고정 일수 창은 2월 낀 구간에서 1개월을 넘겨 resultCode 07을 내므로 월 경계로 자른다.
+export function splitCalendarMonths(start: string, end: string): DateWindow[] {
   const windows: DateWindow[] = [];
   let cur = toDate(start);
   const last = toDate(end);
   while (cur <= last) {
-    const winEnd = new Date(cur);
-    winEnd.setUTCDate(winEnd.getUTCDate() + maxDays - 1);
-    const eff = winEnd > last ? last : winEnd;
+    const monthEnd = new Date(Date.UTC(cur.getUTCFullYear(), cur.getUTCMonth() + 1, 0));
+    const eff = monthEnd > last ? last : monthEnd;
     windows.push({ bgn: `${fmt(cur)}0000`, end: `${fmt(eff)}2359` });
     cur = new Date(eff);
     cur.setUTCDate(cur.getUTCDate() + 1);

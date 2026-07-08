@@ -4,7 +4,7 @@ export { DataGoKrError } from "./errors.js";
 export type { NormalizedResult, ErrorKind } from "./errors.js";
 export type { OperationResult, RawItem, RawApiResponse } from "./envelope.js";
 export { mapWithConcurrency } from "./concurrency.js";
-export { splitDateWindows } from "./windows.js";
+export { splitCalendarMonths } from "./windows.js";
 export type { DateWindow } from "./windows.js";
 export { fetchAllPages } from "./paginate.js";
 export type { PageCaller, PagedResult } from "./paginate.js";
