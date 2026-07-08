@@ -11,3 +11,5 @@ export type { PageCaller, PagedResult } from "./paginate.js";
 export { fetchWindows } from "./fetchWindows.js";
 export type { WindowedResult, FailedWindow } from "./fetchWindows.js";
 export { errMessage } from "./errMessage.js";
+export { fanOut } from "./fanOut.js";
+export type { Outcome, FanOutResult } from "./fanOut.js";
