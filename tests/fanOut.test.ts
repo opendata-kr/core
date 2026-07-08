@@ -25,4 +25,14 @@ describe("fanOut", () => {
     await expect(fanOut(["a", "a"], async (k) => k, { label: () => "same", concurrency: 2 }))
       .rejects.toThrow(/중복 label/);
   });
+  it("프로토타입 키와 겹치는 label도 첫 발생은 정상 처리", async () => {
+    const r = await fanOut(
+      ["constructor", "toString"],
+      async (k) => k.length,
+      { label: (k) => k, concurrency: 2 },
+    );
+    expect(r.results.constructor).toEqual({ ok: true, value: 11 });
+    expect(r.results.toString).toEqual({ ok: true, value: 8 });
+    expect(r.anySucceeded).toBe(true);
+  });
 });

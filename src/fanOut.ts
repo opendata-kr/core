@@ -17,7 +17,7 @@ export async function fanOut<T, R, K extends string>(
   opts: { label: (item: T, index: number) => K; concurrency: number; mapError?: (reason: unknown, item: T) => string },
 ): Promise<FanOutResult<R, K>> {
   const settled = await mapWithConcurrency(items, opts.concurrency, task);
-  const results = {} as Record<K, Outcome<R>>;
+  const results = Object.create(null) as Record<K, Outcome<R>>;
   let anySucceeded = false;
   settled.forEach((s, i) => {
     const item = items[i]!;
