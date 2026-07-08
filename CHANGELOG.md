@@ -2,6 +2,22 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.3.0](https://github.com/opendata-kr/core/compare/v0.2.0...v0.3.0) (2026-07-08)
+
+
+### Features
+
+* **errMessage:** 에러 축약 관용구 통일 유틸 추가 ([738028e](https://github.com/opendata-kr/core/commit/738028ecf2a0b8b8e0f87cb52c530895d46ee121))
+* **fanOut:** label 결과맵 fan-out 프리미티브 추가 ([9fb1bb3](https://github.com/opendata-kr/core/commit/9fb1bb3a2f08d1a3ec474dbcd0b547cda9416742))
+* **keyHint:** 인증키 회복 안내 withKeyHint 승격 ([56949ca](https://github.com/opendata-kr/core/commit/56949ca3ca5ae6a14516e3574d1d635776f39a25))
+* **params:** dateRangeParams·pagingParams 승격 ([2dfe6e6](https://github.com/opendata-kr/core/commit/2dfe6e6d2ed593b434c10ee5075832edfa646f38))
+* **windows:** splitCalendarMonths 추가·고정 일수 splitDateWindows 제거 ([d43848f](https://github.com/opendata-kr/core/commit/d43848f37ed099df5075f439da0193c923fb65e8))
+
+
+### Bug Fixes
+
+* **fanOut:** 결과맵을 Object.create(null)로 만들어 프로토타입 키 오탐 방지 ([c79694f](https://github.com/opendata-kr/core/commit/c79694fa2b1d9c94cc897bed9e833dd71edc2df7))
+
 ## [0.2.0](https://github.com/opendata-kr/core/compare/v0.1.3...v0.2.0) (2026-07-07)
 
 
