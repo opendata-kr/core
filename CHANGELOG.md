@@ -2,6 +2,31 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.4.0](https://github.com/opendata-kr/core/compare/v0.3.1...v0.4.0) (2026-07-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* createClient·call·fetchAllPages·fetchWindows·OperationResult·RawItem·withKeyHint 제거. dataGoKr.create의 get·paginate·paginateWindows와 DataGoKrResponse로 대체
+
+### Features
+
+* **core:** MCP 도구 응답 헬퍼(textResult·guard·READONLY) 흡수 ([92747a2](https://github.com/opendata-kr/core/commit/92747a2acf848d88b1b1f154b333f584f7a33b80))
+* **core:** request·response 인터셉터 매니저 추가 ([bff89d1](https://github.com/opendata-kr/core/commit/bff89d1d9299759d7bf2f4a598e82051ac1563b1))
+* **core:** Standard Schema 계약 타입·응답 봉투 타입·isError 가드 추가 ([7f8781b](https://github.com/opendata-kr/core/commit/7f8781bc7275208b34d545ebe96ace6464277d5f))
+* 전송계층을 dataGoKr 네임스페이스·스키마 검증 클라이언트로 재설계 ([7c94f67](https://github.com/opendata-kr/core/commit/7c94f67c9fb8dfed3e8aebb3449cbe106c0ef622))
+
+
+### Bug Fixes
+
+* **core:** 본문 읽기 타임아웃·paginate 부분결과 오보고·인터셉터 undefined 회복 차단 등 리뷰 결함 수정 ([7478784](https://github.com/opendata-kr/core/commit/74787844834449c67813b26299f03826f223bfc8))
+
+
+### Documentation
+
+* **readme:** 응답 스키마 작성 규약·invalid 소비법·fanOut 병렬 검색 예시 추가 ([0f56b2a](https://github.com/opendata-kr/core/commit/0f56b2a554043cc2666d3b1bb4e0b6986aa89d5c))
+* **roadmap:** typed-transport 재설계 후속 백로그 등록 ([489eb94](https://github.com/opendata-kr/core/commit/489eb94bc9393fa3e998fe5df4681c18d23373ee))
+
 ## [0.3.1](https://github.com/opendata-kr/core/compare/v0.3.0...v0.3.1) (2026-07-14)
 
 
