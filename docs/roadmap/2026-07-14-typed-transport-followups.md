@@ -37,15 +37,8 @@
   - 도구 응답 필드명은 `invalidCount`
   - 테스트는 가짜 클라이언트 객체 대신 실제 `dataGoKr.create`에 `fetch` 주입. 캐스트 없이 봉투 정규화·키 힌트 인터셉터까지 통과
   - `DATA_GO_KR_BASE_URL` 오버라이드는 전체 URL 규약. README·server.json 동기
-- opening:
-  - 수기 Args를 `z.infer` 파생으로 통일(`args as X` 캐스트 제거)
-  - `fetchAllPages`/`fetchWindows` 호출을 `client.paginate`/`paginateWindows`로
-  - endpoints의 `inqryDiv` 반환 타입 리터럴 유니온화
-  - server.ts 인라인 catch를 `guard`로
-- bid:
-  - 수기 Args 8종 `z.infer` 통일
-  - `runOps`의 `label: string`을 `BidKind` 리터럴 보존으로(또는 fanOut+get 직조합으로 대체)
-  - 도구별 인라인 `inqryDiv` 문자열 정리
+- opening: 완료(narajangteo-opening-mcp#6). 수기 Args z.infer 통일, paginate/paginateWindows 전환, inqryDiv 리터럴 유니온, guard 대체. 라이브 발견: D 계열(투찰)은 bidNtceNo 필수, 그 에러가 비표준 nkoneps 봉투로 온다(B6 등록 계기)
+- bid: 완료(narajangteo-bid-mcp#13). 수기 Args 8종 z.infer 통일, runOps 라벨 K extends string 제네릭 보존, kind 부분집합 상수 as const 파생 유니온화. 스키마는 발행 출력계약(전 필드 optional)에 맞춰 필수 필드 없음. 인라인 inqryDiv는 도구별 의미가 정확해 유지
 - corpinfo: 공통 작업 + facet 팬아웃 재구현을 fanOut 채택으로 재검토(corpinfo 백로그 항목과 병합)
 
 ## B5. dependabot #2 잔여분 (vitest 2→4)
