@@ -2,6 +2,13 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.3.1](https://github.com/opendata-kr/core/compare/v0.3.0...v0.3.1) (2026-07-14)
+
+
+### Chores
+
+* 0.3.1 릴리즈(tsc 빌드 전환 발행) ([cff6640](https://github.com/opendata-kr/core/commit/cff664010886db24b5658f0faad31487efd5e2ba))
+
 ## [0.3.0](https://github.com/opendata-kr/core/compare/v0.2.0...v0.3.0) (2026-07-08)
 
 
