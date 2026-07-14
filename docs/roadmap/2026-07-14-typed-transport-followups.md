@@ -16,7 +16,7 @@
 
 ## B4. 서비스 리포 core 0.4 이행 (리포당 1 PR)
 
-공통 작업: `dataGoKr.create({ baseURL })` 전환(gateway의 path 분리 제거), `call`→`get`, 응답을 zod `looseObject` 스키마로 검증(README 스키마 작성 규약 준수, format 계층의 `as` 캐스트 소멸), 도구 응답에 `invalid` 건수 노출, 라이브 검증에서 `invalid > 0` 실패 승격, 리포별 `textResult`/`guard`/`READONLY` 사본을 core import로 교체, `withKeyHint` 수동 조립 제거, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`에 소비하는 core 정확 버전 추가(현재 `@opendata-kr/core@0.4.1`). 의존 범위는 `^0.4.1` 이상으로 고정한다. 0.4.0은 `TextToolResult`가 interface여서 registerTool 콜백 반환이 TS2322로 깨지므로 쓰지 않는다(0.4.1에서 type alias로 수정).
+공통 작업: 다중 요청 도구(fan-out·창 분할)의 API 요청 소모량을 description·파라미터 설명에 명시(스킬 writing-mcp-tool-descriptions [다중 요청 도구], prespec#9 선례), `dataGoKr.create({ baseURL })` 전환(gateway의 path 분리 제거), `call`→`get`, 응답을 zod `looseObject` 스키마로 검증(README 스키마 작성 규약 준수, format 계층의 `as` 캐스트 소멸), 도구 응답에 `invalid` 건수 노출, 라이브 검증에서 `invalid > 0` 실패 승격, 리포별 `textResult`/`guard`/`READONLY` 사본을 core import로 교체, `withKeyHint` 수동 조립 제거, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`에 소비하는 core 정확 버전 추가(현재 `@opendata-kr/core@0.4.1`). 의존 범위는 `^0.4.1` 이상으로 고정한다. 0.4.0은 `TextToolResult`가 interface여서 registerTool 콜백 반환이 TS2322로 깨지므로 쓰지 않는다(0.4.1에서 type alias로 수정).
 
 리포별 함께 처리(감사 발견의 이행 흡수):
 
