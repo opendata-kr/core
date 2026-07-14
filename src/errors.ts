@@ -40,6 +40,10 @@ export class DataGoKrError extends Error {
   }
 }
 
+export function isError(e: unknown): e is DataGoKrError {
+  return e instanceof DataGoKrError;
+}
+
 export interface NormalizedResult {
   ok: boolean;
   noData: boolean;

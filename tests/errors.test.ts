@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeResultCode, DataGoKrError } from "../src/errors.js";
+import { normalizeResultCode, DataGoKrError, isError } from "../src/errors.js";
 
 describe("normalizeResultCode", () => {
   it("00은 정상", () => {
@@ -45,6 +45,21 @@ describe("DataGoKrError 분류", () => {
     const e = new DataGoKrError("", "결과코드 없음");
     expect(e.kind).toBe("unknown");
     expect(e.message).toContain("[?]");
+  });
+});
+
+describe("isError", () => {
+  it("DataGoKrError면 true", () => {
+    expect(isError(new DataGoKrError("30", "SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))).toBe(true);
+  });
+  it("일반 Error면 false", () => {
+    expect(isError(new Error("타임아웃"))).toBe(false);
+  });
+  it("비객체 값이면 false", () => {
+    expect(isError("오류 문자열")).toBe(false);
+    expect(isError(null)).toBe(false);
+    expect(isError(undefined)).toBe(false);
+    expect(isError(30)).toBe(false);
   });
 });
 
