@@ -39,7 +39,7 @@
   - `DATA_GO_KR_BASE_URL` 오버라이드는 전체 URL 규약. README·server.json 동기
 - opening: 완료(narajangteo-opening-mcp#6). 수기 Args z.infer 통일, paginate/paginateWindows 전환, inqryDiv 리터럴 유니온, guard 대체. 라이브 발견: D 계열(투찰)은 bidNtceNo 필수, 그 에러가 비표준 nkoneps 봉투로 온다(B6 등록 계기)
 - bid: 완료(narajangteo-bid-mcp#13). 수기 Args 8종 z.infer 통일, runOps 라벨 K extends string 제네릭 보존, kind 부분집합 상수 as const 파생 유니온화. 스키마는 발행 출력계약(전 필드 optional)에 맞춰 필수 필드 없음. 인라인 inqryDiv는 도구별 의미가 정확해 유지
-- corpinfo: 공통 작업 + facet 팬아웃 재구현을 fanOut 채택으로 재검토(corpinfo 백로그 항목과 병합)
+- corpinfo: 완료(narajangteo-corpinfo-mcp#4). 팬아웃 검토 결정 = fanOut 미채택. 이질 facet(반환 타입이 facet마다 다름)에 쓰면 Outcome<unknown>으로 타입이 죽어, fetchFacet(FacetError 격리)+allSettled 현행이 같은 부분실패 보장을 타입 보존으로 제공. 백로그의 toSanctionResult 추출·테스트 유틸 통합·server.json icons도 함께 해소
 
 ## B5. dependabot #2 잔여분 (vitest 2→4)
 
