@@ -11,6 +11,7 @@ export { splitCalendarMonths } from "./windows.js";
 export { dateRangeParams, pagingParams } from "./params.js";
 export { errMessage } from "./errMessage.js";
 export { DataGoKrError } from "./errors.js";
+export { textResult, guard, READONLY } from "./mcp.js";
 
 export type {
   DataGoKrConfig,
@@ -35,3 +36,4 @@ export type {
   ResponseInterceptorManager,
 } from "./interceptors.js";
 export type { Outcome, FanOutResult } from "./fanOut.js";
+export type { TextToolResult } from "./mcp.js";
