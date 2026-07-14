@@ -204,6 +204,33 @@ describe("ResponseInterceptorManager onRejected", () => {
     expect(out.recovered.data).toEqual([{ marker: "회복값" }]);
   });
 
+  // 로깅 전용 onRejected가 실수로 undefined 응답을 만들지 못하게 한다
+  // (onFulfilled의 undefined=원본 유지와 대칭인 실수 방어).
+  it("undefined 반환은 회복이 아니라 원본 에러를 다음 onRejected로 계속 전파한다", async () => {
+    const m = new ResponseInterceptorManager();
+    const original = new Error("원본 에러");
+    const seen: unknown[] = [];
+    m.use(undefined, (err) => {
+      seen.push(err);
+      return undefined;
+    });
+    m.use(undefined, (err) => {
+      seen.push(err);
+      return makeRes("회복값");
+    });
+    const out = await m.runRejected(original);
+    expect(seen).toEqual([original, original]);
+    expect(out.recovered.data).toEqual([{ marker: "회복값" }]);
+  });
+
+  it("전원이 undefined를 반환하면 원본 에러가 최종 전파된다", async () => {
+    const m = new ResponseInterceptorManager();
+    const original = new Error("원본 에러");
+    m.use(undefined, () => undefined);
+    m.use(undefined, () => undefined);
+    await expect(m.runRejected(original)).rejects.toBe(original);
+  });
+
   it("eject한 항목의 onRejected는 실행되지 않는다", async () => {
     const m = new ResponseInterceptorManager();
     const spy = vi.fn((): EnvelopeResponse => makeRes("회복값"));

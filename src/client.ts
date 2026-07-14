@@ -37,31 +37,52 @@ export interface DataGoKrConfig {
 
 export type Params = Record<string, string | number | undefined>;
 
-export interface RequestConfig<T> {
+// schema 없는 요청 설정. 반환 item은 무검증 Record<string, unknown>이고 invalid는 항상 빈 배열이다.
+export interface RequestConfig {
   params?: Params;
-  // Standard Schema v1 스키마 (zod 4 스키마를 그대로 받는다). 생략 시 무검증
-  // Record<string, unknown>로 흐르고 invalid는 항상 빈 배열이다.
-  schema?: StandardSchemaV1<unknown, T>;
 }
 
+// schema 있는 요청 설정. Standard Schema v1 스키마(zod 4 스키마 그대로)를 받고,
+// 반환 타입 T는 이 schema 검증에서만 태어난다.
+export interface SchemaRequestConfig<T> extends RequestConfig {
+  schema: StandardSchemaV1<unknown, T>;
+}
+
+// 구현 내부용 통합 shape. 공개 표면은 아래 오버로드가 schema 유무로 분리한다.
+type AnyRequestConfig<T> = RequestConfig & { schema?: StandardSchemaV1<unknown, T> };
+
+// get·paginate·paginateWindows는 schema 유무로 오버로드를 분리한다. schema 없는 호출은
+// 타입 인자를 받지 않아 `get<Bid>(op)`처럼 무검증 T를 주장할 수 없다(컴파일 에러).
+// 오버로드 순서: schema 오버로드가 먼저 와야 리터럴 인자의 T 추론이 잡힌다.
 export interface DataGoKrClient {
-  get<T = Record<string, unknown>>(
+  get<T>(op: string, config: SchemaRequestConfig<T>): Promise<DataGoKrResponse<T>>;
+  get(op: string, config?: RequestConfig): Promise<DataGoKrResponse<Record<string, unknown>>>;
+  paginate<T>(
     op: string,
-    config?: RequestConfig<T>,
-  ): Promise<DataGoKrResponse<T>>;
-  paginate<T = Record<string, unknown>>(
-    op: string,
-    config: RequestConfig<T> & { pageSize: number; maxPages: number },
+    config: SchemaRequestConfig<T> & { pageSize: number; maxPages: number },
   ): Promise<PaginatedResponse<T>>;
-  paginateWindows<T = Record<string, unknown>>(
+  paginate(
     op: string,
-    config: RequestConfig<T> & {
+    config: RequestConfig & { pageSize: number; maxPages: number },
+  ): Promise<PaginatedResponse<Record<string, unknown>>>;
+  paginateWindows<T>(
+    op: string,
+    config: SchemaRequestConfig<T> & {
       windows: readonly DateWindow[];
       pageSize: number;
       maxPages: number;
       concurrency: number;
     },
   ): Promise<WindowedResponse<T>>;
+  paginateWindows(
+    op: string,
+    config: RequestConfig & {
+      windows: readonly DateWindow[];
+      pageSize: number;
+      maxPages: number;
+      concurrency: number;
+    },
+  ): Promise<WindowedResponse<Record<string, unknown>>>;
   interceptors: {
     request: RequestInterceptorManager;
     response: ResponseInterceptorManager;
@@ -178,35 +199,49 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
     });
   }
 
+  // fetch·본문 읽기의 전송 레벨 예외를 DataGoKrError로 정규화한다. abort(타임아웃)는
+  // 타임아웃 메시지, 나머지는 network로 감싸 둘 다 재시도 판정(retryable) 대상이 된다.
+  function normalizeTransportError(e: unknown, operation: string): DataGoKrError {
+    if (isAbort(e))
+      return new DataGoKrError("", `요청 시간 초과 (${timeout}ms, operation=${operation})`, {
+        kind: "network",
+      });
+    return new DataGoKrError("", `네트워크 오류 (operation=${operation}): ${errMessage(e)}`, {
+      kind: "network",
+    });
+  }
+
   async function callOnce(operation: string, params: Params): Promise<EnvelopeResponse> {
     const url = buildUrl(operation, params);
     const controller = new AbortController();
+    // 타임아웃은 헤더 수신뿐 아니라 본문 읽기(res.text())까지 걸린다. 그래서 clearTimeout은
+    // 본문 읽기 완료 후(finally)이고, 본문 읽기 중 abort도 타임아웃 에러로 정규화된다.
     const timer = setTimeout(() => controller.abort(), timeout);
-    let res: Response;
+    let text: string;
     try {
-      res = await fetchFn(url, { signal: controller.signal });
-    } catch (e) {
-      if (isAbort(e))
-        throw new DataGoKrError("", `요청 시간 초과 (${timeout}ms, operation=${operation})`, {
-          kind: "network",
+      let res: Response;
+      try {
+        res = await fetchFn(url, { signal: controller.signal });
+      } catch (e) {
+        throw normalizeTransportError(e, operation);
+      }
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new DataGoKrError("", `data.go.kr HTTP ${res.status} 오류 (operation=${operation})`, {
+          kind: "unknown",
+          httpStatus: res.status,
+          rawBody: body.slice(0, 300),
         });
-      throw new DataGoKrError(
-        "",
-        `네트워크 오류 (operation=${operation}): ${errMessage(e)}`,
-        { kind: "network" },
-      );
+      }
+      try {
+        text = await res.text();
+      } catch (e) {
+        // 본문 스트림 끊김·abort도 network로 정규화해 재시도 판정에 태운다.
+        throw normalizeTransportError(e, operation);
+      }
     } finally {
       clearTimeout(timer);
     }
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new DataGoKrError("", `data.go.kr HTTP ${res.status} 오류 (operation=${operation})`, {
-        kind: "unknown",
-        httpStatus: res.status,
-        rawBody: body.slice(0, 300),
-      });
-    }
-    const text = await res.text();
     let json: RawApiResponse;
     try {
       json = JSON.parse(text) as RawApiResponse;
@@ -278,7 +313,7 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
   // 파싱 단계의 throw(validate 예외)는 try 밖이므로 체인 없이 호출자로 직행한다(회복 루프 불가).
   async function get<T = Record<string, unknown>>(
     op: string,
-    config: RequestConfig<T> = {},
+    config: AnyRequestConfig<T> = {},
   ): Promise<DataGoKrResponse<T>> {
     let envelope: EnvelopeResponse;
     try {
@@ -293,11 +328,12 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
   }
 
   // 순차 페이지 소진. 종료 판정의 수신 item 수는 data + invalid 합산이다
-  // (invalid는 격리일 뿐 수신 사실은 유지). totalCount는 API 보고값 그대로.
+  // (invalid는 격리일 뿐 수신 사실은 유지). totalCount는 API 보고값을 따르되,
+  // 데이터 수신 후의 0 보고(noData 폴백 페이지)로는 덮어쓰지 않는다.
   // 페이지 호출은 자기 get 경유라 인터셉터·기본 키 힌트를 동일하게 통과한다.
   async function paginate<T = Record<string, unknown>>(
     op: string,
-    config: RequestConfig<T> & { pageSize: number; maxPages: number },
+    config: AnyRequestConfig<T> & { pageSize: number; maxPages: number },
   ): Promise<PaginatedResponse<T>> {
     const data: T[] = [];
     const invalid: InvalidItem[] = [];
@@ -308,14 +344,19 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
         params: { ...config.params, pageNo: page, numOfRows: config.pageSize },
         schema: config.schema,
       });
-      totalCount = r.totalCount;
+      if (received === 0 || r.totalCount !== 0) totalCount = r.totalCount;
       data.push(...r.data);
       // 페이지 내 index를 호출 단위 누적 수신 위치로 재계산한다.
       invalid.push(...r.invalid.map((v) => ({ ...v, index: received + v.index })));
       const pageReceived = r.data.length + r.invalid.length;
       received += pageReceived;
-      if (received >= totalCount || pageReceived === 0) {
+      if (received >= totalCount) {
         return { data, totalCount, pageNo: 1, invalid, truncated: false };
+      }
+      // 빈 페이지 종료인데 수신 합계가 totalCount 미만이면 조용한 부분 결과 대신
+      // truncated로 알린다 (인터셉터 회복 빈 봉투·API 과대 보고 방어).
+      if (pageReceived === 0) {
+        return { data, totalCount, pageNo: 1, invalid, truncated: true };
       }
     }
     return { data, totalCount, pageNo: 1, invalid, truncated: true };
@@ -326,7 +367,7 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
   // 결과를 입력 index 자리에 두므로 병렬 완료순과 무관하게 결정적이다).
   async function paginateWindows<T = Record<string, unknown>>(
     op: string,
-    config: RequestConfig<T> & {
+    config: AnyRequestConfig<T> & {
       windows: readonly DateWindow[];
       pageSize: number;
       maxPages: number;

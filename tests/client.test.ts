@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { create } from "../src/client.js";
@@ -141,6 +141,85 @@ const okJson = (items: unknown[]) =>
     }),
     { status: 200 },
   );
+
+// 본문 읽기(res.text())는 헤더 수신 후에도 오래 걸리거나 끊길 수 있다.
+// 타임아웃·network 정규화가 본문 읽기 구간까지 적용됨을 검증한다.
+describe("client 본문 읽기", () => {
+  // env DATA_GO_KR_TIMEOUT_MS가 옵션 timeout을 이기므로, 짧은 타임아웃 테스트가
+  // 외부 환경에 흔들리지 않게 이 블록에서만 격리한다.
+  let savedTimeoutEnv: string | undefined;
+  beforeEach(() => {
+    savedTimeoutEnv = process.env.DATA_GO_KR_TIMEOUT_MS;
+    delete process.env.DATA_GO_KR_TIMEOUT_MS;
+  });
+  afterEach(() => {
+    if (savedTimeoutEnv === undefined) delete process.env.DATA_GO_KR_TIMEOUT_MS;
+    else process.env.DATA_GO_KR_TIMEOUT_MS = savedTimeoutEnv;
+  });
+
+  // 헤더는 즉시 오고 본문이 영영 오지 않는 응답. text()는 abort 신호를 받아야만 거부된다.
+  function hangingBodyFetch() {
+    return (async (_input: string | URL | Request, init?: RequestInit) => {
+      const signal = init?.signal as AbortSignal;
+      return {
+        ok: true,
+        status: 200,
+        text: () =>
+          new Promise<string>((_, reject) => {
+            const abort = () => {
+              const e = new Error("aborted");
+              e.name = "AbortError";
+              reject(e);
+            };
+            if (signal.aborted) abort();
+            else signal.addEventListener("abort", abort);
+          }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+  }
+
+  // 본문이 오다가 끊기는 응답(소켓 단절). text()가 일반 예외로 거부된다.
+  function brokenBodyResponse(): Response {
+    return {
+      ok: true,
+      status: 200,
+      text: async () => {
+        throw new Error("socket hang up");
+      },
+    } as unknown as Response;
+  }
+
+  it("본문 읽기 중 타임아웃도 타임아웃 DataGoKrError로 정규화한다", async () => {
+    const client = create({
+      ...base,
+      timeout: 20,
+      fetch: hangingBodyFetch(),
+      retry: { retries: 0, sleep: async () => {} },
+    });
+    await expect(client.get("op")).rejects.toThrow(/요청 시간 초과/);
+  });
+
+  it("본문 읽기 예외는 kind network의 DataGoKrError로 래핑된다", async () => {
+    const fetchFn = (async () => brokenBodyResponse()) as unknown as typeof fetch;
+    const client = create({ ...base, fetch: fetchFn, retry: { retries: 0, sleep: async () => {} } });
+    await expect(client.get("op")).rejects.toMatchObject({
+      name: "DataGoKrError",
+      kind: "network",
+    });
+  });
+
+  it("본문 읽기 예외는 network라 재시도 대상이다 (끊김 후 재시도로 복구)", async () => {
+    let n = 0;
+    const fetchFn = (async () => {
+      n++;
+      return n === 1 ? brokenBodyResponse() : okJson([{ a: "1" }]);
+    }) as unknown as typeof fetch;
+    const client = create({ ...base, fetch: fetchFn, retry: { sleep: async () => {} } });
+    const r = await client.get("op");
+    expect(r.data).toHaveLength(1);
+    expect(n).toBe(2);
+  });
+});
 
 describe("client 재시도", () => {
   it("503은 1회 재시도 후 성공", async () => {

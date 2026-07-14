@@ -95,6 +95,21 @@ describe("get 파이프라인 인터셉터 통합 (AC-6)", () => {
     expect(r.data).toEqual([{ n: 5 }]);
   });
 
+  it("로깅 전용 onRejected(undefined 반환)는 회복하지 않고 원본 에러가 전파된다", async () => {
+    const client = create({
+      ...base,
+      fetch: mockFetch("", 500),
+      retry: { retries: 0, sleep: async () => {} },
+    });
+    const seen: unknown[] = [];
+    client.interceptors.response.use(undefined, (err) => {
+      seen.push(err);
+      return undefined;
+    });
+    await expect(client.get("op")).rejects.toThrow(/HTTP 500/);
+    expect(seen).toHaveLength(1);
+  });
+
   it("onRejected가 재던지면 호출자로 전파된다", async () => {
     const client = create({
       ...base,

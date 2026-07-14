@@ -20,7 +20,10 @@ type ResponseOnFulfilled = (
 ) => EnvelopeResponse | undefined | Promise<EnvelopeResponse | undefined>;
 
 // 값 반환(resolve) = 회복, throw(reject) = 다음 onRejected로 전파.
-type ResponseOnRejected = (err: unknown) => EnvelopeResponse | Promise<EnvelopeResponse>;
+// undefined 반환 = 회복이 아니라 원본 에러 유지 (로깅 전용 onRejected의 실수 방어).
+type ResponseOnRejected = (
+  err: unknown,
+) => EnvelopeResponse | undefined | Promise<EnvelopeResponse | undefined>;
 
 // request 매니저에는 onRejected가 없다(파라미터 자체가 시그니처에 부재).
 // 스키마 파싱 이전 단계의 모든 throw는 response 매니저의 onRejected 체인이 받는다.
@@ -82,13 +85,16 @@ export class ResponseInterceptorManager {
 
   // axios 관례의 에러 체인: onRejected가 값을 반환하면 회복이고 후순위를 건너뛴다.
   // throw하면 그 에러가 다음 onRejected의 입력이 되고, 전부 소진하면 마지막 에러를 전파한다.
+  // undefined 반환은 회복이 아니다: 직전 에러를 그대로 다음 onRejected로 계속 전파해
+  // 로깅 전용 onRejected가 undefined 응답을 만들지 못하게 한다.
   // 회복 값을 { recovered }로 감싸 호출측(파이프라인)이 정상 결과와 구분 없이 재진입하게 한다.
   async runRejected(err: unknown): Promise<{ recovered: EnvelopeResponse }> {
     let currentErr = err;
     for (const { onRejected } of this.handlers.values()) {
       if (onRejected === undefined) continue;
       try {
-        return { recovered: await onRejected(currentErr) };
+        const value = await onRejected(currentErr);
+        if (value !== undefined) return { recovered: value };
       } catch (next) {
         currentErr = next;
       }

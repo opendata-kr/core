@@ -16,6 +16,7 @@ export { textResult, guard, READONLY } from "./mcp.js";
 export type {
   DataGoKrConfig,
   RequestConfig,
+  SchemaRequestConfig,
   Params,
   DataGoKrClient,
   RetryOptions,

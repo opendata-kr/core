@@ -38,13 +38,52 @@ describe("client.paginate", () => {
     expect(r.truncated).toBe(true);
   });
 
-  it("빈 페이지를 받으면 truncated 없이 종료한다", async () => {
+  // 빈 페이지 종료는 정상 소진일 수도, 조용한 부분 결과(인터셉터 회복 빈 봉투·API 과대 보고)일
+  // 수도 있다. 수신 합계가 totalCount 미만이면 부분 결과로 알린다.
+  it("빈 페이지 종료인데 수신 합계가 totalCount 미만이면 truncated=true", async () => {
     const fetchFn = pagedFetch(10, { 1: [{ a: "1" }], 2: [] });
     const client = create({ ...base, fetch: fetchFn });
     const r = await client.paginate("op", { pageSize: 1, maxPages: 10 });
     expect(r.data).toHaveLength(1);
-    expect(r.truncated).toBe(false);
+    expect(r.truncated).toBe(true);
     expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("totalCount 0의 빈 첫 페이지는 truncated=false로 종료한다", async () => {
+    const fetchFn = pagedFetch(0, { 1: [] });
+    const client = create({ ...base, fetch: fetchFn });
+    const r = await client.paginate("op", { pageSize: 10, maxPages: 10 });
+    expect(r.data).toEqual([]);
+    expect(r.truncated).toBe(false);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+
+  // noData 폴백 페이지는 totalCount를 0으로 보고한다. 이미 수신한 실측 totalCount를
+  // 0으로 덮어쓰면 부분 결과가 truncated=false로 오보고되므로 기존 값을 유지해야 한다.
+  it("데이터 수신 후의 totalCount 0 보고는 기존 totalCount를 덮어쓰지 않는다", async () => {
+    const perPage: Record<number, { totalCount: number; items: unknown[] }> = {
+      1: { totalCount: 4, items: [{ a: "1" }, { a: "2" }] },
+      2: { totalCount: 0, items: [] }, // noData 폴백 흉내
+    };
+    const fetchFn = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      const pageNo = Number(url.searchParams.get("pageNo"));
+      const page = perPage[pageNo] ?? { totalCount: 0, items: [] };
+      return new Response(
+        JSON.stringify({
+          response: {
+            header: { resultCode: "00" },
+            body: { totalCount: page.totalCount, pageNo, items: page.items },
+          },
+        }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+    const client = create({ ...base, fetch: fetchFn });
+    const r = await client.paginate("op", { pageSize: 2, maxPages: 10 });
+    expect(r.data).toHaveLength(2);
+    expect(r.totalCount).toBe(4); // 0으로 덮어쓰지 않는다
+    expect(r.truncated).toBe(true); // 4건 중 2건만 수신한 부분 결과
   });
 
   // AC-9: 종료 판정의 수신 item 수는 data + invalid 합산이다. 탈락(invalid)도 수신이므로
