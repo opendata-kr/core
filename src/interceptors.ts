@@ -1,7 +1,5 @@
 import type { DataGoKrResponse } from "./response.js";
-
-// 신 client(Task 3)의 Params로 단일화 예정인 로컬 정의.
-export type Params = Record<string, string | number | undefined>;
+import type { Params } from "./client.js";
 
 // request 인터셉터가 받고 반환하는 값. fetch 이전이라 op·params만 존재한다.
 export interface RequestContext {
