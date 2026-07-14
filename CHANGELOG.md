@@ -2,6 +2,19 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.4.1](https://github.com/opendata-kr/core/compare/v0.4.0...v0.4.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **mcp:** TextToolResult를 type alias로 변경해 CallToolResult 할당 오류 수정 ([0257f89](https://github.com/opendata-kr/core/commit/0257f89673b6e8517cddfc108dd9c303e048418f))
+
+
+### Documentation
+
+* **roadmap:** dependabot vitest 잔여분 B5 등록 ([0737648](https://github.com/opendata-kr/core/commit/07376485cdf76da5258348b4b927a88ff6f35afe))
+* **roadmap:** 서비스 리포 0.4.0 이행 체크리스트 B4 추가 ([e74c3a4](https://github.com/opendata-kr/core/commit/e74c3a46f5e378b387776d7424fbc273d96e0b15))
+
 ## [0.4.0](https://github.com/opendata-kr/core/compare/v0.3.1...v0.4.0) (2026-07-14)
 
 
