@@ -13,3 +13,14 @@
 ## B3. 키 힌트 전달 경계 문서화
 
 기본 키 힌트는 onRejected 체인 맨 앞에서 부착되므로, 하류 소비자 인터셉터가 에러 메시지를 새로 만들면 안내가 유실된다. 힌트가 `resultMsg` 필드에도 섞이는 소음도 있다. 서비스 이행 가이드에 "에러 번역 인터셉터는 원본 message를 보존하라"를 명시하고, resultMsg 분리 여부를 검토한다.
+
+## B4. 서비스 리포 0.4.0 이행 (리포당 1 PR)
+
+공통 작업: `dataGoKr.create({ baseURL })` 전환(gateway의 path 분리 제거), `call`→`get`, 응답을 zod `looseObject` 스키마로 검증(README 스키마 작성 규약 준수, format 계층의 `as` 캐스트 소멸), 도구 응답에 `invalid` 건수 노출, 라이브 검증에서 `invalid > 0` 실패 승격, 리포별 `textResult`/`guard`/`READONLY` 사본을 core import로 교체, `withKeyHint` 수동 조립 제거, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`에 `@opendata-kr/core@0.4.0`.
+
+리포별 함께 처리(감사 발견의 이행 흡수):
+
+- prespec: 공통 작업만. 가장 작아 파일럿 적합.
+- opening: 수기 Args를 `z.infer` 파생으로 통일(`args as X` 캐스트 제거), `fetchAllPages`/`fetchWindows` 호출을 `client.paginate`/`paginateWindows`로, endpoints의 `inqryDiv` 반환 타입 리터럴 유니온화, server.ts 인라인 catch를 `guard`로.
+- bid: 수기 Args 8종 `z.infer` 통일, `runOps`의 `label: string`을 `BidKind` 리터럴 보존으로(또는 fanOut+get 직조합으로 대체), 도구별 인라인 `inqryDiv` 문자열 정리.
+- corpinfo: 공통 작업 + facet 팬아웃 재구현을 fanOut 채택으로 재검토(corpinfo 백로그 항목과 병합).
