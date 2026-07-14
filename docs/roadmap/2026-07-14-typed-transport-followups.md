@@ -24,3 +24,7 @@
 - opening: 수기 Args를 `z.infer` 파생으로 통일(`args as X` 캐스트 제거), `fetchAllPages`/`fetchWindows` 호출을 `client.paginate`/`paginateWindows`로, endpoints의 `inqryDiv` 반환 타입 리터럴 유니온화, server.ts 인라인 catch를 `guard`로.
 - bid: 수기 Args 8종 `z.infer` 통일, `runOps`의 `label: string`을 `BidKind` 리터럴 보존으로(또는 fanOut+get 직조합으로 대체), 도구별 인라인 `inqryDiv` 문자열 정리.
 - corpinfo: 공통 작업 + facet 팬아웃 재구현을 fanOut 채택으로 재검토(corpinfo 백로그 항목과 병합).
+
+## B5. dependabot #2 잔여분 (vitest 2→4)
+
+dependabot #2(TS 5→7·@types/node·vitest) 중 빌드·타입체크는 tsc 전환으로 해소됐다. vitest 2→4는 `ERR_PACKAGE_PATH_NOT_EXPORTED`가 나서 별도 검토 후 rebase 병합한다. B1(테스트 타입 게이트)과 같은 작업에서 처리하면 효율적이다.
