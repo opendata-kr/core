@@ -20,7 +20,7 @@
 
 리포별 함께 처리(감사 발견의 이행 흡수):
 
-- prespec: 공통 작업만. 가장 작아 파일럿 적합.
+- prespec: 완료(narajangteo-prespec-mcp#7). 파일럿에서 확립한 패턴: raw 스키마는 `src/api/schema.ts`에 `looseObject`+조인 키만 필수+금액·건수 `coerce.string`, 도구 응답 필드명은 `invalidCount`, 테스트는 가짜 클라이언트 객체 대신 실제 `dataGoKr.create`에 `fetch` 주입(캐스트 없이 봉투 정규화·키 힌트 인터셉터까지 통과), `DATA_GO_KR_BASE_URL` 오버라이드는 전체 URL 규약으로 문서·server.json 동기.
 - opening: 수기 Args를 `z.infer` 파생으로 통일(`args as X` 캐스트 제거), `fetchAllPages`/`fetchWindows` 호출을 `client.paginate`/`paginateWindows`로, endpoints의 `inqryDiv` 반환 타입 리터럴 유니온화, server.ts 인라인 catch를 `guard`로.
 - bid: 수기 Args 8종 `z.infer` 통일, `runOps`의 `label: string`을 `BidKind` 리터럴 보존으로(또는 fanOut+get 직조합으로 대체), 도구별 인라인 `inqryDiv` 문자열 정리.
 - corpinfo: 공통 작업 + facet 팬아웃 재구현을 fanOut 채택으로 재검토(corpinfo 백로그 항목과 병합).
