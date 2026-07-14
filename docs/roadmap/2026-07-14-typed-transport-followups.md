@@ -1,6 +1,6 @@
 # typed-transport 재설계 후속 백로그
 
-0.4.0 재설계(dataGoKr 네임스페이스·스키마 검증 전송)의 최종 리뷰가 남긴 비차단 항목.
+0.4 재설계(dataGoKr 네임스페이스·스키마 검증 전송)의 최종 리뷰가 남긴 비차단 항목.
 
 ## B1. 테스트 타입 게이트·헬퍼 통합
 
@@ -14,9 +14,9 @@
 
 기본 키 힌트는 onRejected 체인 맨 앞에서 부착되므로, 하류 소비자 인터셉터가 에러 메시지를 새로 만들면 안내가 유실된다. 힌트가 `resultMsg` 필드에도 섞이는 소음도 있다. 서비스 이행 가이드에 "에러 번역 인터셉터는 원본 message를 보존하라"를 명시하고, resultMsg 분리 여부를 검토한다.
 
-## B4. 서비스 리포 0.4.0 이행 (리포당 1 PR)
+## B4. 서비스 리포 core 0.4 이행 (리포당 1 PR)
 
-공통 작업: `dataGoKr.create({ baseURL })` 전환(gateway의 path 분리 제거), `call`→`get`, 응답을 zod `looseObject` 스키마로 검증(README 스키마 작성 규약 준수, format 계층의 `as` 캐스트 소멸), 도구 응답에 `invalid` 건수 노출, 라이브 검증에서 `invalid > 0` 실패 승격, 리포별 `textResult`/`guard`/`READONLY` 사본을 core import로 교체, `withKeyHint` 수동 조립 제거, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`에 `@opendata-kr/core@0.4.0`.
+공통 작업: `dataGoKr.create({ baseURL })` 전환(gateway의 path 분리 제거), `call`→`get`, 응답을 zod `looseObject` 스키마로 검증(README 스키마 작성 규약 준수, format 계층의 `as` 캐스트 소멸), 도구 응답에 `invalid` 건수 노출, 라이브 검증에서 `invalid > 0` 실패 승격, 리포별 `textResult`/`guard`/`READONLY` 사본을 core import로 교체, `withKeyHint` 수동 조립 제거, `pnpm-workspace.yaml` `minimumReleaseAgeExclude`에 소비하는 core 정확 버전 추가(현재 `@opendata-kr/core@0.4.1`). 의존 범위는 `^0.4.1` 이상으로 고정한다. 0.4.0은 `TextToolResult`가 interface여서 registerTool 콜백 반환이 TS2322로 깨지므로 쓰지 않는다(0.4.1에서 type alias로 수정).
 
 리포별 함께 처리(감사 발견의 이행 흡수):
 
