@@ -1,6 +1,6 @@
 {
   "name": "@opendata-kr/core",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "data.go.kr OpenAPI MCP 서비스 공통 계층 (전송·스키마 검증·서버 헬퍼)",
   "type": "module",
   "main": "./dist/index.js",
