@@ -51,3 +51,7 @@
 ## B5. dependabot #2 잔여분 (vitest 2→4)
 
 dependabot #2(TS 5→7·@types/node·vitest) 중 빌드·타입체크는 tsc 전환으로 해소됐다. vitest 2→4는 `ERR_PACKAGE_PATH_NOT_EXPORTED`가 나서 별도 검토 후 rebase 병합한다. B1(테스트 타입 게이트)과 같은 작업에서 처리하면 효율적이다.
+
+## B6. 비표준 오류 봉투 정규화 (nkoneps ResponseError)
+
+data.go.kr 일부 오류는 표준 `response.header`가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {"resultCode", "resultMsg"}}}` 봉투로 온다. 현재 core는 이 코드를 못 읽어 "[?] 응답에 결과코드가 없습니다"로 뭉갠다. opening 라이브에서 재현: D 계열(투찰)을 `bidNtceNo` 없이 기간 조회하면 resultCode 08(필수값 입력 에러)이 이 봉투로 온다(낙찰 리포 작업에서도 동일 증상). `callOnce`의 JSON 경로에서 이 루트 키를 인식해 `normalizeResultCode`로 태우면 원인 코드가 소비자에게 전달된다.
