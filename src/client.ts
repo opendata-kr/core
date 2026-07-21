@@ -16,6 +16,8 @@ import type { StandardSchemaV1 } from "./standardSchema.js";
 import type { DateWindow } from "./windows.js";
 import { mapWithConcurrency } from "./concurrency.js";
 import { errMessage } from "./errMessage.js";
+import { callContext } from "./logContext.js";
+import type { UpstreamPayload } from "./logEvents.js";
 
 export interface RetryOptions {
   retries?: number;
@@ -264,12 +266,56 @@ export function create(config: DataGoKrConfig = {}): DataGoKrClient {
     };
   }
 
+  // ALS 계측: attempt 종료 시 sink가 있으면 registerKey(해석된 서비스키) → upstream 순서로
+  // 발신한다(sink는 호출 단위라 attempt마다 반복). store 부재(로거 미채택 소비자·미래핑
+  // 호출)면 완전 무동작이고, 클라이언트는 로거 인스턴스를 모른다(결합 없음).
+  // params는 원본 그대로 담는다(마스킹은 로거 기록 시점 소관).
+  function emitUpstream(make: () => UpstreamPayload): void {
+    const sink = callContext.getStore();
+    if (!sink) return;
+    sink.registerKey(serviceKey);
+    sink.upstream(make());
+  }
+
+  // ok:false 이벤트의 에러 필드. DataGoKrError면 errKind와 보유 시 resultCode·httpStatus를
+  // 함께 담고, 그 외 예외는 message만 담는다.
+  function upstreamErrorFields(
+    e: unknown,
+  ): Pick<UpstreamPayload, "error" | "errKind" | "resultCode" | "httpStatus"> {
+    if (!isError(e)) return { error: errMessage(e) };
+    return {
+      error: e.message,
+      errKind: e.kind,
+      ...(e.code !== "" ? { resultCode: e.code } : {}),
+      ...(e.httpStatus !== undefined ? { httpStatus: e.httpStatus } : {}),
+    };
+  }
+
   // 재시도 1회(기본) 루프. retryable 에러(throttle·network·HTTP 429/5xx)만 재시도한다.
   async function callWithRetry(operation: string, params: Params): Promise<EnvelopeResponse> {
     for (let attempt = 0; ; attempt++) {
+      const startMs = Date.now();
       try {
-        return await callOnce(operation, params);
+        const envelope = await callOnce(operation, params);
+        emitUpstream(() => ({
+          op: operation,
+          params,
+          attempt,
+          ms: Date.now() - startMs,
+          ok: true,
+          count: envelope.data.length,
+          totalCount: envelope.totalCount,
+        }));
+        return envelope;
       } catch (e) {
+        emitUpstream(() => ({
+          op: operation,
+          params,
+          attempt,
+          ms: Date.now() - startMs,
+          ok: false,
+          ...upstreamErrorFields(e),
+        }));
         const retryable = e instanceof DataGoKrError ? e.retryable : false;
         if (!retryable || attempt >= retry.retries) throw e;
         await retry.sleep(retry.baseDelayMs + Math.floor(Math.random() * retry.jitterMs));
