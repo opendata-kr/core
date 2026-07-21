@@ -7,6 +7,16 @@ import type { LogEvent } from "./logEvents.js";
 // 파일 전환 임계값. 프로세스 내 누적 기록 바이트가 이를 넘으면 다음 이벤트부터 새 파일.
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
+// stderr 진단 출력. stderr가 닫힌 환경(EPIPE)에서 write가 던지면 쓰기 체인·도구 경로가
+// 오염되므로 진단 자체를 포기한다(무예외 계약이 진단보다 우선).
+export function warnStderr(line: string): void {
+  try {
+    process.stderr.write(line);
+  } catch {
+    // stderr 닫힘: 진단 포기
+  }
+}
+
 export type LogWriter = {
   write(event: LogEvent): void;
   flush(): Promise<void>;
@@ -24,6 +34,8 @@ export function createLogWriter(opts: {
   app: string;
   epochSec: number;
   pid: number;
+  // 파일 전환 직후 호출된다(보존 정리 재실행용). 예외는 삼킨다.
+  onRotate?: () => void;
 }): LogWriter {
   let epochSec = opts.epochSec;
   let currentFile = path.resolve(opts.dir, logFileName(opts.app, epochSec, opts.pid));
@@ -34,7 +46,7 @@ export function createLogWriter(opts: {
 
   function disable(e: unknown): void {
     disabled = true;
-    process.stderr.write(
+    warnStderr(
       `[opendata-kr] 호출 로그 쓰기 실패, 로깅을 비활성화합니다 (${currentFile}): ${errMessage(e)}\n`,
     );
     const h = handle;
@@ -58,6 +70,13 @@ export function createLogWriter(opts: {
           epochSec = Math.max(Math.floor(Date.now() / 1000), epochSec + 1);
           currentFile = path.resolve(opts.dir, logFileName(opts.app, epochSec, opts.pid));
           await old?.close().catch(() => {});
+          // 전환 시에도 보존 정리를 재실행해 무재시작 장수 프로세스의 회전 파일 누적을
+          // 디스크 상한 계약 안에 묶는다(기동 시 1회만으로는 상한이 뚫린다).
+          try {
+            opts.onRotate?.();
+          } catch {
+            // 정리 실패는 기록을 막지 않는다
+          }
         }
         if (!handle) handle = await open(currentFile, "a");
         await handle.write(line);

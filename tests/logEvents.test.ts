@@ -86,6 +86,16 @@ describe("maskEvent", () => {
     expect(masked.params).toEqual({ pageNo: 3, flag: true, empty: null });
   });
 
+  it("비plain 객체(Date 등)는 재구성하지 않고 그대로 통과한다 ({} 왜곡 방지)", () => {
+    const when = new Date("2026-07-21T01:47:51.000Z");
+    const event = upstreamEvent({ when, nested: { when } });
+    const masked = maskEvent(event, ["SECRET"]) as UpstreamEvent;
+    expect(masked.params.when).toBe(when);
+    expect((masked.params.nested as Record<string, unknown>).when).toBe(when);
+    // JSON 직렬화 시 toJSON 관례가 살아 ISO 문자열로 남는다
+    expect(JSON.parse(JSON.stringify(masked.params)).when).toBe("2026-07-21T01:47:51.000Z");
+  });
+
   it("이벤트 유니온 4종을 그대로 통과시킨다 (공통 필드 보존)", () => {
     const cancelled: CancelledEvent = { ...base, type: "cancelled", ms: 240_000 };
     const events: LogEvent[] = [

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { resolveLogDir, pruneLogFiles } from "./logPath.js";
-import { createLogWriter, type LogWriter } from "./logWriter.js";
+import { createLogWriter, warnStderr, type LogWriter } from "./logWriter.js";
 import { callContext, type CallSink } from "./logContext.js";
 import { maskEvent, type LogEvent, type UpstreamPayload } from "./logEvents.js";
 import { guard, type TextToolResult } from "./mcp.js";
@@ -28,8 +28,12 @@ export interface CallLogger {
 function isTextToolResult(value: unknown): value is TextToolResult {
   if (typeof value !== "object" || value === null) return false;
   const content = (value as { content?: unknown }).content;
+  // 빈 배열은 제외한다. 정상 TextToolResult는 항목이 항상 1개 이상이고(guard·textResult가
+  // 그렇게만 만든다), 빈 content는 우연히 같은 필드명을 가진 도메인 payload일 수 있다
+  // (공진리 every로 오판하면 래핑 없이 새어 클라이언트가 빈 응답을 받는다).
   return (
     Array.isArray(content) &&
+    content.length > 0 &&
     content.every(
       (item) =>
         typeof item === "object" &&
@@ -51,22 +55,24 @@ export function createCallLogger(options: CallLoggerOptions): CallLogger {
   let writer: LogWriter | undefined;
   const resolution = resolveLogDir(env, options.dir);
   if (resolution.kind === "unresolved") {
-    process.stderr.write(
+    warnStderr(
       `[opendata-kr] 로그 경로를 해석할 수 없어 호출 로깅을 비활성화합니다 (LOCALAPPDATA 부재)\n`,
     );
   } else if (resolution.kind === "dir") {
+    const dir = resolution.dir;
     try {
-      mkdirSync(resolution.dir, { recursive: true });
-      pruneLogFiles(resolution.dir, app, Date.now());
+      mkdirSync(dir, { recursive: true });
+      pruneLogFiles(dir, app, Date.now());
       writer = createLogWriter({
-        dir: resolution.dir,
+        dir,
         app,
         epochSec: Math.floor(Date.now() / 1000),
         pid: process.pid,
+        onRotate: () => pruneLogFiles(dir, app, Date.now()),
       });
     } catch (e) {
-      process.stderr.write(
-        `[opendata-kr] 로그 디렉터리 생성 실패, 호출 로깅을 비활성화합니다 (${resolution.dir}): ${errMessage(e)}\n`,
+      warnStderr(
+        `[opendata-kr] 로그 디렉터리 생성 실패, 호출 로깅을 비활성화합니다 (${dir}): ${errMessage(e)}\n`,
       );
     }
   }
@@ -90,7 +96,7 @@ export function createCallLogger(options: CallLoggerOptions): CallLogger {
     } catch (e) {
       if (!warnedUnserializable) {
         warnedUnserializable = true;
-        process.stderr.write(
+        warnStderr(
           `[opendata-kr] 호출 로그 이벤트 직렬화 실패, 해당 이벤트를 건너뜁니다: ${errMessage(e)}\n`,
         );
       }
@@ -101,23 +107,17 @@ export function createCallLogger(options: CallLoggerOptions): CallLogger {
     return { v: 1, ts: new Date().toISOString(), app, callId };
   }
 
-  // 클라이언트 계측(callWithRetry)이 catch 블록 안에서 직접 호출하는 sink. 무예외 계약이다.
+  // 클라이언트 계측(callWithRetry)이 catch 블록 안에서 직접 호출하는 sink. 무예외 계약은
+  // 구성 요소가 보장한다: record는 자체 try/catch로 무예외이고 Set.add·string.trim은 던지지
+  // 않는다(중복 방어층은 진짜 결함을 stderr 경고 경로 밖에서 삼키므로 두지 않는다).
   function makeSink(callId: string): CallSink {
     return {
       upstream(e: UpstreamPayload): void {
-        try {
-          record({ ...baseFields(callId), type: "upstream", ...e });
-        } catch {
-          // 무예외 계약: 기록 실패가 클라이언트 에러 경로를 오염시키지 않는다
-        }
+        record({ ...baseFields(callId), type: "upstream", ...e });
       },
       registerKey(key: string): void {
-        try {
-          const trimmed = key.trim();
-          if (trimmed) maskKeys.add(trimmed);
-        } catch {
-          // 무예외 계약
-        }
+        const trimmed = key.trim();
+        if (trimmed) maskKeys.add(trimmed);
       },
     };
   }

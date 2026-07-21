@@ -92,6 +92,11 @@ function maskValue(value: unknown, secrets: ReadonlyArray<string>): unknown {
   }
   if (Array.isArray(value)) return value.map((item) => maskValue(item, secrets));
   if (value !== null && typeof value === "object") {
+    // plain object만 재구성 순회한다. Date·Map·URL 같은 비plain 객체를 Object.entries로
+    // 재구성하면 {}로 왜곡돼 로그의 파라미터 복원이 불가능해지므로 그대로 통과시킨다
+    // (직렬화는 JSON.stringify의 toJSON 관례를 따른다. 이 값 내부는 마스킹 순회 밖이다).
+    const proto: unknown = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) return value;
     const out: Record<string, unknown> = {};
     for (const [key, item] of Object.entries(value)) {
       if (key === "serviceKey") continue;

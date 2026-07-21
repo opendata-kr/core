@@ -80,6 +80,33 @@ describe("createLogWriter", () => {
     expect(names.every((n) => /^test-app\.\d+-42\.jsonl$/.test(n))).toBe(true);
   });
 
+  it("파일 전환 시 onRotate가 호출되고 onRotate 예외는 기록을 막지 않는다", async () => {
+    const onRotate = vi.fn(() => {
+      throw new Error("prune 실패");
+    });
+    const w = createLogWriter({ dir, app: "test-app", epochSec: 1000, pid: 42, onRotate });
+    const big = "x".repeat(1024 * 1024);
+    for (let i = 0; i < 6; i++) w.write(ev(`c${i}`, big));
+    await w.flush();
+    expect(onRotate).toHaveBeenCalledTimes(1);
+    expect(w.disabled).toBe(false);
+    expect(readLines(w.file!).map((e) => e.callId)).toEqual(["c5"]);
+  });
+
+  it("stderr가 닫혀 write가 던져도(EPIPE) 체인·flush는 오염되지 않는다", async () => {
+    stderrSpy.mockImplementation(() => {
+      throw new Error("EPIPE");
+    });
+    const missing = path.join(dir, "no-such-dir");
+    const w = createLogWriter({ dir: missing, app: "test-app", epochSec: 1000, pid: 42 });
+    w.write(ev("c1"));
+    await expect(w.flush()).resolves.toBeUndefined();
+    expect(w.disabled).toBe(true);
+    // 이후 write·flush도 무예외로 유지된다 (영구 reject 체인 없음)
+    w.write(ev("c2"));
+    await expect(w.flush()).resolves.toBeUndefined();
+  });
+
   it("쓰기 실패는 stderr 경고 1회 후 영구 비활성 전환하고 예외를 전파하지 않는다", async () => {
     const missing = path.join(dir, "no-such-dir");
     const w = createLogWriter({ dir: missing, app: "test-app", epochSec: 1000, pid: 42 });

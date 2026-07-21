@@ -178,6 +178,20 @@ describe("createCallLogger", () => {
     expect(end.error).toBeUndefined(); // 도구 자체 isError 본문은 재기록하지 않는다
   });
 
+  it("content가 빈 배열인 도메인 payload는 TextToolResult로 오판하지 않고 래핑한다", async () => {
+    const logger = createCallLogger({ app: "test-app", dir, env: {} });
+    const payload = { content: [], totalElements: 0 };
+    const handler = logger.tool("t", async () => payload);
+    const result = await handler({});
+    await logger.flush();
+
+    // 공진리 every 오판이면 payload가 그대로 새어 클라이언트가 빈 응답을 받는다.
+    expect(result).not.toBe(payload);
+    expect(result.content).toHaveLength(1);
+    expect(JSON.parse(result.content[0]!.text)).toEqual(payload);
+    expect(ofType(readEvents(logger.file!), "call_end")[0]!.outcome).toBe("ok");
+  });
+
   it("실행 중 abort는 cancelled를 즉시 기록하고 call_end에 afterCancel을 남긴다", async () => {
     const logger = createCallLogger({ app: "test-app", dir, env: {} });
     const ac = new AbortController();
