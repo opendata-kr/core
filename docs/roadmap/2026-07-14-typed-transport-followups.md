@@ -48,3 +48,12 @@ dependabot #2(TS 5→7·@types/node·vitest) 중 빌드·타입체크는 tsc 전
 ## B6. 비표준 오류 봉투 정규화 (nkoneps ResponseError)
 
 data.go.kr 일부 오류는 표준 `response.header`가 아니라 `{"nkoneps.com.response.ResponseError": {"header": {"resultCode", "resultMsg"}}}` 봉투로 온다. 현재 core는 이 코드를 못 읽어 "[?] 응답에 결과코드가 없습니다"로 뭉갠다. opening 라이브에서 재현: D 계열(투찰)을 `bidNtceNo` 없이 기간 조회하면 resultCode 08(필수값 입력 에러)이 이 봉투로 온다(낙찰 리포 작업에서도 동일 증상). `callOnce`의 JSON 경로에서 이 루트 키를 인식해 `normalizeResultCode`로 태우면 원인 코드가 소비자에게 전달된다.
+
+## B7. 장시간 호출 방어 프리미티브 (취소 전파·창 부분 실행)
+
+MCP 클라이언트는 도구 호출을 일정 시간 후 취소한다(Claude Desktop 실측 240초 하드캡, `notifications/cancelled` 발신. 모델은 이 타임아웃을 서버 다운으로 오진한다). 넓은 기간 × fan-out 호출(창 수 × maxPages × kinds × 재시도 1회)은 이 캡을 쉽게 넘는다. 라이브 사례·OSS 선례 조사·서비스 측 우선순위(창 병렬화 → 커서 부분 결과 계약)는 opening `docs/roadmap/2026-07-21-client-timeout-defense.md`.
+
+- 구조화 호출 로거: 완료. core가 `createCallLogger`·`logger.tool`로 제공한다. 도구 호출 단위 jsonl 이벤트 스트림(`call_start`·`upstream`·`cancelled`·`call_end`, callId 상관), 서비스키 마스킹, env-paths log 관례 경로 인라인(macOS `~/Library/Logs/opendata-kr/`, Windows `%LOCALAPPDATA%\opendata-kr\Log`, Linux `$XDG_STATE_HOME/opendata-kr/`, `OPENDATA_LOG_DIR` 오버라이드·`OPENDATA_LOG=off`), 프로세스당 파일 + 5 MiB 전환 + 7일·8개 보존, AbortSignal 청취 취소 기록(취소 전파의 앞부분). 서비스 리포 배선은 리포별 후속 태스크.
+- 취소 전파: 도구 핸들러가 받은 AbortSignal을 클라이언트 요청(fetch)까지 전파해 취소 후 upstream 트래픽 낭비를 끊는다.
+- 창 부분 실행: `paginateWindows`에 처리할 창 상한(또는 시작 오프셋+상한)을 받아 그만큼만 조회하고 미처리 창 목록을 결과에 반환한다. 서비스 계층이 이를 stateless 커서(`nextCursor`)로 인코딩해 커서 기반 부분 결과 계약을 구현한다. 시간 기반 데드라인 절단이 아니라 창 개수 기반 결정론적 절단이다.
+- 진단 도구 구현 제공: 로거 기록을 읽어 "직전 호출 부검"을 반환하는 get_diagnostics 도구 구현(`readOnlyHint: true`, 작은 응답, 키 마스킹)을 core가 제공하고 서비스는 등록만 한다.
