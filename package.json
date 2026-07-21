@@ -25,6 +25,9 @@
   "homepage": "https://github.com/opendata-kr/core#readme",
   "license": "MIT",
   "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",

@@ -12,6 +12,7 @@ export { dateRangeParams, pagingParams } from "./params.js";
 export { errMessage } from "./errMessage.js";
 export { DataGoKrError } from "./errors.js";
 export { textResult, guard, READONLY } from "./mcp.js";
+export { createCallLogger } from "./callLogger.js";
 
 export type {
   DataGoKrConfig,
@@ -38,3 +39,4 @@ export type {
 } from "./interceptors.js";
 export type { Outcome, FanOutResult } from "./fanOut.js";
 export type { TextToolResult } from "./mcp.js";
+export type { CallLogger, CallLoggerOptions } from "./callLogger.js";
