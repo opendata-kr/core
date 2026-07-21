@@ -57,3 +57,4 @@ MCP 클라이언트는 도구 호출을 일정 시간 후 취소한다(Claude De
 - 취소 전파: 도구 핸들러가 받은 AbortSignal을 클라이언트 요청(fetch)까지 전파해 취소 후 upstream 트래픽 낭비를 끊는다.
 - 창 부분 실행: `paginateWindows`에 처리할 창 상한(또는 시작 오프셋+상한)을 받아 그만큼만 조회하고 미처리 창 목록을 결과에 반환한다. 서비스 계층이 이를 stateless 커서(`nextCursor`)로 인코딩해 커서 기반 부분 결과 계약을 구현한다. 시간 기반 데드라인 절단이 아니라 창 개수 기반 결정론적 절단이다.
 - 진단 도구 구현 제공: 로거 기록을 읽어 "직전 호출 부검"을 반환하는 get_diagnostics 도구 구현(`readOnlyHint: true`, 작은 응답, 키 마스킹)을 core가 제공하고 서비스는 등록만 한다.
+- 로거 마스킹 창 한계: `create` 옵션으로 주입된 서비스키는 그 키의 첫 upstream 발신(registerKey) 전에 기록되는 이벤트(call_start, 업스트림 도달 전 예외의 call_end)에서 마스킹 집합에 없다. 현 서비스 4종은 전부 env 주입이라 실노출이 없다. 옵션 주입 소비자를 지원하려면 `CallLoggerOptions`에 추가 마스킹 키를 받는 확장이 필요하다.
