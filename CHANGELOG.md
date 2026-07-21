@@ -2,6 +2,33 @@
 
 이 프로젝트의 주요 변경 사항을 기록한다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [0.5.0](https://github.com/opendata-kr/core/compare/v0.4.1...v0.5.0) (2026-07-21)
+
+
+### Features
+
+* **logger:** createCallLogger 공개 API·도구 래퍼 추가 ([34b7718](https://github.com/opendata-kr/core/commit/34b7718d3841466ff41b8f28ee2a2e831eeb6f1c))
+* **logger:** jsonl writer·ALS 호출 컨텍스트·클라이언트 upstream 계측 추가 ([4853451](https://github.com/opendata-kr/core/commit/48534516051f57576a9db586b2e3314212d9c05e))
+* **logger:** 로그 경로 해석·파일 전략·이벤트 스키마·마스킹 순수 계층 추가 ([2270a66](https://github.com/opendata-kr/core/commit/2270a6632f24bba2e94a5a92fb6282e054686216))
+
+
+### Bug Fixes
+
+* **logger:** 최종 리뷰 확정 결함 수정 (빈 content 오판·stderr 무방어·비plain 왜곡·회전 보존) ([b5c8889](https://github.com/opendata-kr/core/commit/b5c8889553830f5da389cd63010e167cf8a08800))
+
+
+### Documentation
+
+* **roadmap:** B4 corpinfo 이행 완료·팬아웃 미채택 결정 반영, B4 전 리포 종료 ([7245acf](https://github.com/opendata-kr/core/commit/7245acfb0907afa87352691fec42923b16d24c37))
+* **roadmap:** B4 opening·bid 이행 완료 반영 ([8700eb8](https://github.com/opendata-kr/core/commit/8700eb8ccd74ed5e7fb3c88ba744e83fdfba550e))
+* **roadmap:** B4 prespec 이행 완료, 파일럿 확립 패턴 기록 ([d057aeb](https://github.com/opendata-kr/core/commit/d057aeb8c5221a081a273af9bc4d1f609f19c71c))
+* **roadmap:** B4 공통 작업에 다중 요청 도구의 트래픽 소모 명시 추가 ([48913b7](https://github.com/opendata-kr/core/commit/48913b78cb7500f17ba4909ca370420006c99e67))
+* **roadmap:** B4 만연체 분절, 공통 작업·리포별 항목을 원자 불릿으로 재구조화 ([b766fc1](https://github.com/opendata-kr/core/commit/b766fc13546ba1f85cea02db779f146e6827052c))
+* **roadmap:** B7 장시간 호출 방어 백로그 등록, 로거 항목 완료 반영 ([b884f56](https://github.com/opendata-kr/core/commit/b884f560e4d45e98a23b737a56c6b9763a357f2a))
+* **roadmap:** B7에 로거 마스킹 창 한계 백로그 추가 ([0b6c39a](https://github.com/opendata-kr/core/commit/0b6c39a45b0685731ca460dd60f5d400b1e3d494))
+* **roadmap:** 비표준 오류 봉투(nkoneps) 정규화 백로그 B6 등록 ([2e26b43](https://github.com/opendata-kr/core/commit/2e26b439728b78a3357380bee7a1ba7e16af211b))
+* **roadmap:** 이행 소비 버전을 0.4.1로 정정 (TextToolResult fix 반영) ([49b8c9d](https://github.com/opendata-kr/core/commit/49b8c9d458d6b8b1cd126803d5755e89f9b5f4ab))
+
 ## [0.4.1](https://github.com/opendata-kr/core/compare/v0.4.0...v0.4.1) (2026-07-14)
 
 
